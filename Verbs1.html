@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Norsk Verbs Memorization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        h2 {
+            color: #333;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .answer {
+            font-weight: bold;
+            color: #007BFF;
+        }
+        .incorrect {
+            color: red;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Memorize Norsk Verbs</h2>
+
+<div id="questions-container"></div>
+
+<button onclick="generateAndDisplayQuestions()">Generate Questions</button>
+<button onclick="checkAnswers()">Check Answers</button>
+
+<div id="result"></div>
+
+<script>
+    const allVerbs = [
+        { norsk: 'Smiler', english: 'Smile' },
+        { norsk: 'Vakner', english: 'Wakeup' },
+        { norsk: 'Står opp', english: 'Get up usually in the morning' },
+        { norsk: 'Kler pa seg', english: 'Dressed up' },
+        { norsk: 'Pusser', english: 'Polishes' },
+        { norsk: 'Kjorer', english: 'Drive' },
+        { norsk: 'Leser', english: 'Read' },
+        { norsk: 'Handle', english: 'Shop' },
+        { norsk: 'Betaler', english: 'Pays' },
+        { norsk: 'Rydder', english: 'Cleaner' },
+        { norsk: 'Ansikt', english: 'Face' },
+        { norsk: 'Lager middag', english: 'Mean dinner' },
+        { norsk: 'Legger', english: 'Lay down, like for sleeping in the night' },
+        { norsk: 'Tidlig', english: 'Early' },
+        { norsk: 'Vasker opp', english: 'Wash dishes' },
+        { norsk: 'Vasker', english: 'Wash' },
+        { norsk: 'Stryker', english: 'Iron' },
+        { norsk: 'Pusser', english: 'Cleaning / shining, Windows' },
+        { norsk: 'Støvsuger', english: 'Hoover, vacuum' },
+        { norsk: 'Tørker', english: 'Dry, like dry stove' },
+        { norsk: 'Kaster', english: 'Throwing' },
+        { norsk: 'Rer opp', english: 'Make it or prepare, like rer opp senga, prepare bed' },
+        { norsk: 'Ganger', english: 'Pretty' },
+        { norsk: 'Kjøpper', english: 'Buy' },
+        { norsk: 'Finner', english: 'Find' },
+        { norsk: 'Går', english: 'Goes' },
+        { norsk: 'Trenger', english: 'Needs' },
+        { norsk: 'Finner', english: 'Finds' },
+        { norsk: 'Liker', english: 'Likes' },
+        { norsk: 'Pakker', english: 'Packs' },
+        { norsk: 'Sitter', english: 'Sit' },
+        { norsk: 'Kommer', english: 'Comes' },
+        { norsk: 'Bor', english: 'Lives' },
+        { norsk: 'Har', english: 'Has' },
+        { norsk: 'Prater', english: 'Talk' },
+        { norsk: 'Koster', english: 'It costs' },
+        { norsk: 'Lager', english: 'To make' },
+    ];
+
+    let currentVerbs = [];
+
+    function generateAndDisplayQuestions() {
+        // Make a copy of allVerbs to avoid modifying the original array
+        const unusedVerbs = [...allVerbs];
+
+        // Select 10 random verbs from the unusedVerbs
+        currentVerbs = getRandomVerbs(unusedVerbs, 10);
+
+        // Remove the selected verbs from unusedVerbs to avoid repetition
+        currentVerbs.forEach(verb => {
+            const index = unusedVerbs.findIndex(v => v.norsk === verb.norsk);
+            if (index !== -1) {
+                unusedVerbs.splice(index, 1);
+            }
+        });
+
+        // Clear previous questions
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+
+        // Generate questions for the selected verbs
+        currentVerbs.forEach((verb, index) => {
+            const questionElement = document.createElement('div');
+            questionElement.className = 'question';
+            questionElement.innerHTML = `<p>Translate <span class="answer">${verb.norsk}</span> to English.</p>
+                                          <input type="text" id="answer${index}" placeholder="Your answer">
+                                          <div id="correctAnswer${index}" class="incorrect"></div>`;
+            container.appendChild(questionElement);
+        });
+    }
+
+    function getRandomVerbs(verbs, count) {
+        const shuffledVerbs = [...verbs].sort(() => Math.random() - 0.5);
+        return shuffledVerbs.slice(0, count);
+    }
+
+    function checkAnswers() {
+        let correctCount = 0;
+
+        currentVerbs.forEach((verb, index) => {
+            const userAnswer = document.getElementById(`answer${index}`).value.toLowerCase();
+            const similarity = calculateSimilarity(userAnswer, verb.english.toLowerCase());
+
+            const correctAnswerElement = document.getElementById(`correctAnswer${index}`);
+            if (similarity < 0.9) {
+                correctAnswerElement.textContent = `Correct Answer: ${verb.english}`;
+                correctAnswerElement.className = 'incorrect';
+            } else {
+                correctAnswerElement.textContent = '';
+            }
+
+            if (similarity >= 0.9) {
+                correctCount++;
+            }
+        });
+
+        const resultElement = document.getElementById('result');
+        resultElement.textContent = `You got ${correctCount} out of ${currentVerbs.length} correct.`;
+    }
+
+    function calculateSimilarity(str1, str2) {
+        const m = str1.length;
+        const n = str2.length;
+
+        const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+        for (let i = 0; i <= m; i++) {
+            for (let j = 0; j <= n; j++) {
+                if (i === 0) {
+                    dp[i][j] = j;
+                } else if (j === 0) {
+                    dp[i][j] = i;
+                } else if (str1[i - 1] === str2[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+                }
+            }
+        }
+
+        const maxLen = Math.max(m, n);
+        const distance = dp[m][n];
+        return 1 - distance / maxLen;
+    }
+</script>
+
+</body>
+</html>
